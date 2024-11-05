@@ -150,8 +150,9 @@ public class Functions(ISecretsManagerCache secretsManagerCache, JsonSerializerO
     }
 
     private static bool NotToday(TelegramUpdate.MessageUpdate result) =>
-        s_phrasesToSayDone.Contains(result.Message.Text.ToLower()) ||
-        s_phrasesToSayNo.Contains(result.Message.Text.ToLower());
+        (result.Message.Text is {}) &&
+        (s_phrasesToSayDone.Contains(result.Message.Text?.ToLower()) ||
+        s_phrasesToSayNo.Contains(result.Message.Text?.ToLower()));
 
 
     [LambdaFunction()]
