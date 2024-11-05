@@ -28,6 +28,8 @@ jobs:
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-region: us-east-1
-        role-to-assume: ${{ secrets.SAMDEPLOYERROLEARN }}        
+        role-to-assume: ${{ secrets.SAMDEPLOYERROLEARN }}
+    - name: Install Dotnet-Lambda tool
+      run: dotnet tool install --global Amazon.Lambda.Tools
     - name: Deploy
       run: dotnet lambda deploy-serverless --stack-name LeetcodeDailyChallengeLambda --s3-bucket leetcode-daily-challenge-store --template src/LeetcodeDailyChallengeReminder/serverless.template --region us-east-1
