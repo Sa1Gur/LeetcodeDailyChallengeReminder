@@ -9,11 +9,13 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
 
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
     - name: Restore dependencies
@@ -22,11 +24,13 @@ jobs:
       run: dotnet build --no-restore
     # - name: Test
     #   run: dotnet test --no-build --verbosity normal
-    - name: Setup AWS CLI
+    - name: Setup AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1 # Modify this to your desired AWS region
+        aws-region: us-east-1
+        role-to-assume: SAMDeployer        
     - name: Deploy
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: dotnet lambda deploy-serverless --stack-name LeetcodeDailyChallengeLambda --s3-bucket leetcode-daily-challenge-store --template src/LeetcodeDailyChallengeReminder/serverless.template --region us-east-1
