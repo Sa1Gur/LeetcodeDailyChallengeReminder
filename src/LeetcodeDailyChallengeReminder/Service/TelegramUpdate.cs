@@ -15,7 +15,7 @@ public record TelegramUpdate
         public required From From { get; set; }
         public required Chat Chat { get; set; }
         public int Date { get; set; }
-        public required string Text { get; set; }
+        public string? Text { get; set; }
     }
 
     public record From
