@@ -3,6 +3,7 @@ using Amazon.Lambda.TestUtilities;
 using Moq;
 using Amazon.SecretsManager.Extensions.Caching;
 using System.Text.Json;
+using System.ComponentModel;
 
 
 namespace LambdaAnnotations.Tests;
@@ -25,28 +26,12 @@ public class FunctionsTest
     }
 
     [Fact]
+    [Description("We expect the test to fail when calling the bot after successfully getting credentials.")]
     public async void TestCredentials()
     {
         TestLambdaContext context = new();
 
         Functions functions = new(_mockSecretsManagerCache, _jsonSerializerOptions);
-        Assert.Equal(token + " " + chatId, await functions.Test(context));
-    }
-
-    [Fact]
-    public async void TestGetSecret()
-    {
-        HttpClient client = new();
-        string getUpdatesUrl = $"https://api.telegram.org/.../getUpdates";
-        var updates = await client.GetAsync(getUpdatesUrl);
-        TelegramUpdate? update = JsonSerializer.Deserialize<TelegramUpdate>(
-            await updates.Content.ReadAsStringAsync(), _jsonSerializerOptions
-        );
-        List<DateTime> dates = [];
-        foreach (var result in update?.Result ?? [])
-            dates.Add(DateTimeOffset.FromUnixTimeSeconds(result.Message.Date).Date);
-
-        if (update is {})
-            Console.WriteLine($"Recent Telegram messages {string.Join(" ", update.Result)}");
+        Assert.Equal("Fail to get updates", await functions.Test(context));
     }
 }
