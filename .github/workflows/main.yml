@@ -27,7 +27,7 @@ jobs:
     - name: Setup AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        aws-region: us-east-1
+        aws-region: eu-west-1
         role-to-assume: ${{ secrets.SAMDEPLOYERROLEARN }}
     - name: Install Dotnet-Lambda tool
       run: dotnet tool install --global Amazon.Lambda.Tools
