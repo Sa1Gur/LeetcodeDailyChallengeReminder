@@ -30,4 +30,4 @@ jobs:
     - name: Install Dotnet-Lambda tool
       run: dotnet tool install --global Amazon.Lambda.Tools
     - name: Deploy
-      run: dotnet lambda deploy-serverless --stack-name LeetcodeDailyChallengeLambda --s3-bucket leetcode-daily-challenge-store --template src/LeetcodeDailyChallengeReminder/serverless.template --region eu-west-1
+      run: dotnet lambda deploy-serverless --stack-name LeetcodeDailyChallengeLambda --s3-bucket leetcode-daily-challenge-store --template src/LeetcodeDailyChallengeReminder/serverless.template --region eu-west-1 --framework net9.0
