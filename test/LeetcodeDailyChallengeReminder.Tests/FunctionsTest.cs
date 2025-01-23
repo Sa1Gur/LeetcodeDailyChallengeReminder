@@ -27,7 +27,7 @@ public class FunctionsTest
 
     [Fact]
     [Description("We expect the test to fail when calling the bot after successfully getting credentials.")]
-    public async void TestCredentials()
+    public async Task TestCredentials()
     {
         TestLambdaContext context = new();
 
