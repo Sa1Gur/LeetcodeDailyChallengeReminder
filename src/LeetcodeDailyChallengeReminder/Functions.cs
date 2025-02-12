@@ -110,7 +110,20 @@ public class Functions(ISecretsManagerCache secretsManagerCache, JsonSerializerO
 
         DailyChallengeInfo? daily = await LeetcodeDailyChallenge.LeetcodeDailyChallenge.LeetcodeDailyChallenge.GetLeetcodeDailyChallenge(s_client, jsonSerializerOptions, context.Logger);
         if (daily is null) return "Fail to get daily challenge";
-        context.Logger.LogInformation("Daily challenge received {daily.Data}");
+        context.Logger.LogInformation($"Daily challenge received {daily.Data}");
+
+        UserProfileResponse? userProfileResponse = await LeetcodeDailyChallenge.LeetcodeDailyChallenge.LeetcodeDailyChallenge.GetUserLeetcodeStatus("Sa1Gur", jsonSerializerOptions, context.Logger);
+        if (userProfileResponse is {})
+        {
+            context.Logger.LogInformation($"UserProfileResponse {userProfileResponse}");
+            if (userProfileResponse.RecentSubmissionList.Any(submission => submission.TitleSlug.Equals(daily.Data.Challenge.Question.Slug, StringComparison.Ordinal)))
+                return "Solved for today!";
+        }
+        else
+        {
+            context.Logger.LogInformation("Fail to receive UserProfileResponse");
+        }
+
 
         string creds = await _secretsManagerCache.GetSecretString("LeetcodeDailyChallengeBot");
         context.Logger.LogInformation("Creds received");
