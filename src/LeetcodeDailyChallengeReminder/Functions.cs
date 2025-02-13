@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Collections.ObjectModel;
 using LeetcodeDailyChallenge.LeetcodeDailyChallenge;
 using LeetcodeDailyChallenge.Service;
+using LeetcodeDailyChallengeReminder.Service;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
@@ -112,11 +113,19 @@ public class Functions(ISecretsManagerCache secretsManagerCache, JsonSerializerO
         if (daily is null) return "Fail to get daily challenge";
         context.Logger.LogInformation($"Daily challenge received {daily.Data}");
 
-        UserProfileResponse? userProfileResponse = await LeetcodeDailyChallenge.LeetcodeDailyChallenge.LeetcodeDailyChallenge.GetUserLeetcodeStatus("Sa1Gur", jsonSerializerOptions, context.Logger);
+        string creds = await _secretsManagerCache.GetSecretString("LeetcodeDailyChallengeBot");
+        context.Logger.LogInformation("Creds received");
+        BotSecret? document = JsonSerializer.Deserialize<BotSecret>(creds, jsonSerializerOptions);
+        if (document is null) return "Fail to deserialize creds";
+        context.Logger.LogInformation("Creds deserialized succesfully");
+
+        UserProfileResponse? userProfileResponse = await LeetcodeDailyChallenge.LeetcodeDailyChallenge.LeetcodeDailyChallenge.GetUserLeetcodeStatus(document.UsernameLeetcode, jsonSerializerOptions, context.Logger);
         if (userProfileResponse is {})
         {
             context.Logger.LogInformation($"UserProfileResponse {userProfileResponse}");
-            if (userProfileResponse.RecentSubmissionList.Any(submission => submission.TitleSlug.Equals(daily.Data.Challenge.Question.Slug, StringComparison.Ordinal)))
+            if (userProfileResponse.RecentSubmissionList.Any(
+                submission => submission.StatusDisplay.Equals("Accepted", StringComparison.Ordinal)
+                    && submission.TitleSlug.Equals(daily.Data.Challenge.Question.Slug, StringComparison.Ordinal)))
                 return "Solved for today!";
         }
         else
@@ -124,12 +133,6 @@ public class Functions(ISecretsManagerCache secretsManagerCache, JsonSerializerO
             context.Logger.LogInformation("Fail to receive UserProfileResponse");
         }
 
-
-        string creds = await _secretsManagerCache.GetSecretString("LeetcodeDailyChallengeBot");
-        context.Logger.LogInformation("Creds received");
-        BotSecret? document = JsonSerializer.Deserialize<BotSecret>(creds, jsonSerializerOptions);
-        if (document is null) return "Fail to deserialize creds";
-        context.Logger.LogInformation("Creds deserialized succesfully");
 
         string getUpdatesUrl = $"https://api.telegram.org/bot{document.Token}/getUpdates";
         HttpResponseMessage updates = await s_client.GetAsync(getUpdatesUrl);
@@ -145,7 +148,7 @@ public class Functions(ISecretsManagerCache secretsManagerCache, JsonSerializerO
 
         foreach (var result in update.Result)
         {
-            if (result.Message.From.Username == "Guriy_Samarin" &&
+            if (result.Message.From.Username.Equals(document.UsernameTelegram, StringComparison.Ordinal) &&
                 NotToday(result) &&
                 DateTimeOffset.FromUnixTimeSeconds(result.Message.Date).Date == DateTime.UtcNow.Date) return "Not today!";
         }
@@ -164,8 +167,8 @@ public class Functions(ISecretsManagerCache secretsManagerCache, JsonSerializerO
 
     private static bool NotToday(TelegramUpdate.MessageUpdate result) =>
         (result.Message.Text is {}) &&
-        (s_phrasesToSayDone.Contains(result.Message.Text?.ToLower()) ||
-        s_phrasesToSayNo.Contains(result.Message.Text?.ToLower()));
+        (s_phrasesToSayDone.Contains(result.Message.Text?.ToLower() ?? "") ||
+        s_phrasesToSayNo.Contains(result.Message.Text?.ToLower() ?? ""));
 
 
     [LambdaFunction()]

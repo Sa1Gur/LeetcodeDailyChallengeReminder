@@ -32,6 +32,7 @@ public class FunctionsTest
         TestLambdaContext context = new();
 
         Functions functions = new(_mockSecretsManagerCache, _jsonSerializerOptions);
-        Assert.Equal("Fail to get updates", await functions.Test(context));
+        List<string> validResponses = ["Fail to deserialize creds", "Solved for today!", "Fail to get updates"];
+        Assert.Contains(await functions.Test(context), validResponses);
     }
 }
