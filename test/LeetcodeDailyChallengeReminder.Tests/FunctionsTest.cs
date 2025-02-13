@@ -15,13 +15,20 @@ public class FunctionsTest
 
     private readonly string token = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
     private readonly int chatId = -123;
+    private readonly string usernameLeetcode = "leadLeetcoder";
+    private readonly string usernameTelegram = "telegrammer";
 
     public FunctionsTest()
     {
         Mock<ISecretsManagerCache> mock = new();
         mock
             .Setup(m => m.GetSecretString(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync($"{{\"token\":\"{token}\",\"chatId\":\"{chatId}\"}}");
+            .ReturnsAsync($@"{{
+            ""token"": ""{token}"",
+            ""chatId"": ""{chatId}"",
+            ""usernameLeetcode"": ""{usernameLeetcode}"",
+            ""usernameTelegram"": ""{usernameTelegram}""
+        }}");
         _mockSecretsManagerCache = mock.Object;
     }
 
